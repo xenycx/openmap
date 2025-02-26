@@ -79,6 +79,12 @@
     showFormPopup = !showFormPopup;
   }
 
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && showFormPopup) {
+      toggleFormPopup();
+    }
+  }
+
   // Watch for map, markers, and dark mode changes
   $: if ($map && $markers) {
     updateMarkers();
@@ -105,8 +111,14 @@
       }
     });
     
-    // Return cleanup function directly instead of returning a Promise
-    return unsubscribe;
+    window.addEventListener('keydown', handleKeydown);
+    return () => {
+      unsubscribe();
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+      window.removeEventListener('keydown', handleKeydown);
+    };
   });
 
   onDestroy(() => {
@@ -129,14 +141,41 @@
     class:dark-mode={$mapDarkMode}
     on:click={toggleFormPopup}
   >
-    Open Form
+     ფორმის გახსნა
   </button>
 </div>
 
 {#if showFormPopup}
-  <div class="modal-overlay" class:dark-mode={$mapDarkMode} on:click={toggleFormPopup}>
-    <div class="modal-content" class:dark-mode={$mapDarkMode} on:click|stopPropagation>
-      <button class="close-button" class:dark-mode={$mapDarkMode} on:click={toggleFormPopup}>&times;</button>
+  <!-- Use a static div for the overlay background -->
+  <div 
+    class="modal-overlay" 
+    class:dark-mode={$mapDarkMode}
+    role="dialog"
+    aria-modal="true"
+    aria-label="Google Form"
+  >
+    <!-- Use a button for the click-outside behavior -->
+    <button
+      class="overlay-button"
+      on:click={toggleFormPopup}
+      aria-label="Close modal"
+    >
+      <span class="sr-only">Close modal</span>
+    </button>
+    
+    <div 
+      class="modal-content" 
+      class:dark-mode={$mapDarkMode}
+      role="document"
+    >
+      <button 
+        class="close-button" 
+        class:dark-mode={$mapDarkMode} 
+        on:click={toggleFormPopup}
+        aria-label="Close form"
+      >
+        &times;
+      </button>
       <iframe
         title="Google Form"
         src="https://docs.google.com/forms/d/e/1FAIpQLSdKgjYeYKX4CGzd5sm96OfYOw1JClfVk8ICa8JGwYukNNrfQA/viewform?embedded=true"
@@ -224,13 +263,25 @@
     background: #363b44;
   }
 
+  .overlay-button {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+  }
+
   .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -284,5 +335,17 @@
 
   .close-button.dark-mode:hover {
     background: #444954;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 </style>
