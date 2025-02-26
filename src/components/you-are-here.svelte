@@ -4,11 +4,11 @@
   import { Popup } from "maplibre-gl";
 
   const { map } = mapContext();
-  let popupCreated = false;
+  let popupCreate = false;
 
-  $: if ($map && !popupCreated) {
+  $: if ($map && !popupCreate) {
     (async () => {
-      popupCreated = true;
+      popupCreate = true;
       const location = await getLocation();
       $map.flyTo({ center: location, zoom: 8 });
       // programmatically creating...
@@ -17,7 +17,7 @@
         closeOnClick: false,
       })
         .setLngLat(location)
-        .setHTML("<h3>You are approximately here!</h3>")
+        .setHTML("<h3>შენ დაახლოებით აქ ხარ!</h3>")
         .addTo($map);
     })();
   }
