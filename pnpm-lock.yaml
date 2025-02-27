@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      bpg-square-banner-2013:
+        specifier: ^1.0.0
+        version: 1.0.0
       maplibre-gl:
         specifier: ^4.7.1
         version: 4.7.1
@@ -361,6 +364,9 @@ packages:
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
     engines: {node: '>= 0.4'}
+
+  bpg-square-banner-2013@1.0.0:
+    resolution: {integrity: sha512-FfhERxccFaSnfG6LmhSe29hsM91HVMkBnr7ifuM+2mfc/U2dOY1jnRxymlDvPmdKI3M1OIOVGignTtriN2wREA==}
 
   chokidar@4.0.1:
     resolution: {integrity: sha512-n8enUVCED/KVRQlab1hr3MVpcVMvxtZjmEa956u+4YijlmQED223XMSYj2tLuKvr4jcCTzNNMpQDUer72MMmzA==}
@@ -880,6 +886,8 @@ snapshots:
   aria-query@5.3.2: {}
 
   axobject-query@4.1.0: {}
+
+  bpg-square-banner-2013@1.0.0: {}
 
   chokidar@4.0.1:
     dependencies:
