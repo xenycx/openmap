@@ -11,8 +11,8 @@
   import './app.css';
   
   // Sidebar state
-  let sidebarCollapsed = true; // Default to collapsed
-  let activeTab = 'home';
+  let sidebarCollapsed = false; // Default to collapsed
+  let activeTab = 'markers';
   let markersComponent: MapLocationMarkers;
   let showMarkers = true;
   let mapStyle = "https://tiles.openfreemap.org/styles/liberty";

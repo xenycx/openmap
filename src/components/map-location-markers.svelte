@@ -56,14 +56,8 @@
   function getEmoji(markerData: MarkerData, index: number): string {
     // If marker has a specific emoji directly provided, use it
     if (markerData.emojiType) {
-      // If the emojiType is a single character (likely an emoji), use it directly
-      if (markerData.emojiType.length === 1 || markerData.emojiType.length === 2) {
-        return markerData.emojiType;
-      }
-      // Otherwise check if it's a category name in our map
-      if (markerData.emojiType in emojiCategories) {
-        return emojiCategories[markerData.emojiType];
-      }
+      // The emojiType should be the extracted emoji from parse function
+      return markerData.emojiType;
     }
     
     // Otherwise fall back to the rotating emoji array

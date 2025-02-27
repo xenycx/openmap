@@ -104,23 +104,31 @@ function parseCoordinates(coordStr: string): LngLatLike | null {
 
 // Parse CSV data into markers
 function parseCSV(csvText: string): Marker[] {
-  const lines = csvText.split('\n');
+  // First, parse the headers correctly including the quotes
+  const headers = parseCSVLine(csvText.split('\n')[0]);
   
-  if (lines.length < 2) {
-    throw new Error('CSV file is empty or invalid');
-  }
-  
-  const headers = lines[0].split(',');
-  
-  // Updated field names to match the Georgian CSV headers
+  // Updated field names to match the exact Georgian CSV headers
   const timestampIndex = headers.findIndex(h => h.trim() === 'Timestamp');
   const nameIndex = headers.findIndex(h => h.trim() === 'ლოკაციის სახელი');
   const descriptionIndex = headers.findIndex(h => h.trim() === 'ლოკაციის აღწერა');
   const coordinatesIndex = headers.findIndex(h => h.includes('კოორდინატები'));
   const googleMapsLinkIndex = headers.findIndex(h => h.trim() === 'Google Maps-ის ლინკი');
   const scaleIndex = headers.findIndex(h => h.trim() === 'მარკერის ზომა');
-  // Updated to match the actual column name in your CSV
   const emojiTypeIndex = headers.findIndex(h => h.includes('ლოკაციის ტიპი'));
+  
+  // Log the indexes to debug
+  console.log('Header indexes:', {
+    timestampIndex,
+    nameIndex,
+    descriptionIndex,
+    coordinatesIndex,
+    googleMapsLinkIndex,
+    scaleIndex,
+    emojiTypeIndex
+  });
+  
+  // For debugging: print the actual headers
+  console.log('Actual headers:', headers);
   
   if (nameIndex === -1 || coordinatesIndex === -1) {
     throw new Error('Required columns are missing from the CSV');
@@ -133,10 +141,16 @@ function parseCSV(csvText: string): Marker[] {
   
   const parsedMarkers: Marker[] = [];
   
-  lines.slice(1)
+  // Parse the rest of the lines with proper CSV parsing
+  csvText.split('\n')
+    .slice(1)
     .filter(line => line.trim() !== '')
     .forEach(line => {
       const values = parseCSVLine(line);
+      
+      // For debugging
+      console.log('Parsed line:', values);
+      
       let coordinates: LngLatLike | null = null;
       
       // Process coordinates if they exist
@@ -233,6 +247,8 @@ function parseCSVLine(line: string): string[] {
         i++;
       } else {
         inQuotes = !inQuotes;
+        // Skip adding the quote character itself
+        continue;
       }
     } else if (char === ',' && !inQuotes) {
       result.push(current.trim());
@@ -245,15 +261,14 @@ function parseCSVLine(line: string): string[] {
   // Add the last field
   result.push(current.trim());
   
-  // Clean up any remaining quotes at the start/end of fields
-  return result.map(field => field.replace(/^"|"$/g, ''));
+  return result;
 }
 
 // Function to fetch markers from Google Sheets
 export async function fetchMarkers(): Promise<void> {
   try {
     markersError.set(null); // Reset error state
-    const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vTtH19FvWQJmQ4bsS_iEMws13YvEgPE_6QaUM2k3LV0d0682bYGCTTWYexlHoZLsvQxS8620ROLYaFS/pub?gid=361615453&single=true&output=csv");
+    const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vTtH19FvWQJmQ4bsS_iEMws13YvEgPE_6QaUM2k3LV0d0682bYGCTTWYexlHoZLsvQxS8620ROLYaFS/pub?output=csv");
     
     if (!response.ok) {
       throw new Error(`Failed to fetch markers: ${response.status}`);
