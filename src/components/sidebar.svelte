@@ -63,10 +63,6 @@
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
     background-color: rgba(255, 255, 255, 0.95);
     transition: width 500ms, transform 500ms;
-  }
-  
-  /* Mobile-first approach */
-  .sidebar {
     width: calc(100% - 40px);
     max-width: 400px;
   }
@@ -83,10 +79,11 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    -webkit-overflow-scrolling: touch;
   }
 
   .sidebar-main-tabs {
@@ -175,7 +172,7 @@
   }
 
   .sidebar.dark-mode .sidebar-tabs {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.3);
   }
 
   /* Small screen optimizations */
@@ -199,6 +196,77 @@
     .sidebar-form-button,
     .sidebar-toggle {
       margin: 8px 0;
+    }
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .sidebar-tabs {
+      background-color: rgba(0, 0, 0, 0.15);
+      width: 44px; /* Slightly wider for better touch targets */
+    }
+    
+    .sidebar {
+      width: calc(100% - 44px);
+    }
+    
+    .sidebar.collapsed {
+      width: 44px;
+    }
+    
+    .sidebar-button {
+      width: 44px;
+      height: 44px;
+      padding: 12px;
+      font-size: 18px; /* Larger icons for mobile */
+    }
+    
+    .sidebar-form-button .sidebar-button,
+    .sidebar-toggle .sidebar-button {
+      width: 44px;
+      height: 44px;
+    }
+    
+    .sidebar-content {
+      left: 44px;
+    }
+  }
+
+  /* Fix dark mode background issues */
+  .sidebar.dark-mode {
+    background-color: rgba(40, 44, 52, 0.95);
+    color: #f0f0f0;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.85);
+  }
+
+  .sidebar.dark-mode .sidebar-tabs {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
+  .sidebar.dark-mode .sidebar-content {
+    background-color: rgba(40, 44, 52, 0.95);
+  }
+
+  /* Ensure buttons are always visible on mobile */
+  @media (hover: none) and (pointer: coarse) {
+    .sidebar-bottom-tabs {
+      padding-bottom: 16px;
+      gap: 12px;
+    }
+    
+    .sidebar-form-button,
+    .sidebar-toggle {
+      margin: 4px 0;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    
+    .sidebar-button:active {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    
+    .dark-mode .sidebar-button:active {
+      background-color: rgba(255, 255, 255, 0.2);
     }
   }
 </style>
