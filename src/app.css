@@ -91,91 +91,129 @@ h1, h2, h3, p, div, button, label, input, a {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
+  height: calc(100% - 60px); /* Account for header */
+  overflow-y: auto;
+  -ms-overflow-style: none;  /* Hide scrollbar for IE and Edge */
+  scrollbar-width: none;  /* Hide scrollbar for Firefox */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.markers-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbars while maintaining scroll functionality */
+.sidebar-content,
+.sidebar-panes,
+.markers-list {
+  overflow-y: auto;
+  -ms-overflow-style: none;  /* Hide scrollbar for IE and Edge */
+  scrollbar-width: none;     /* Hide scrollbar for Firefox */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.sidebar-content::-webkit-scrollbar,
+.sidebar-panes::-webkit-scrollbar,
+.markers-list::-webkit-scrollbar {
+  display: none;
+  width: 0;
 }
 
 .marker-item {
   background: #ffffff;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .dark-mode .marker-item {
   background: #282c33;
-  border: 1px solid #444;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  border-color: #444;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* MARKER CONTAINER HOVER EFFECT not needed if we have button hover */
-/* .marker-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-} */
-
 .marker-header {
-  margin-bottom: 10px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .marker-title {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 500;
   color: #333;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  word-break: break-word;
 }
 
 .dark-mode .marker-title {
   color: #f0f0f0;
 }
 
-.marker-description {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0 0 15px 0;
+.marker-emoji {
+  font-size: 1.2rem;
+  min-width: 24px;
   text-align: center;
 }
 
+.marker-description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.4;
+}
+
 .dark-mode .marker-description {
-  color: #bbb;
+  color: #aaa;
 }
 
 .marker-button {
-  text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: #0066ff;
-  color: #ffffff;
-  border-radius: 6px;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #555;
+  text-decoration: none;
   font-size: 0.9rem;
   transition: all 0.2s ease;
 }
 
-.marker-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgb(0, 102, 255);
+.dark-mode .marker-button {
+  background: #363b42;
+  border-color: #444;
+  color: #f0f0f0;
 }
 
-.dark-mode .marker-button {
-  background-color: #0074d9;
-  color: #1a1a1a;
-  margin: 0 auto;
-  display: flex;
-  justify-content: center;
+.marker-button:hover {
+  background: #ebebeb;
+  border-color: #ccc;
 }
 
 .dark-mode .marker-button:hover {
-  box-shadow: 0 2px 8px rgb(0, 102, 255);
+  background: #404550;
+  border-color: #555;
 }
 
 .no-markers {
   text-align: center;
-  color: #888;
+  color: #666;
+  padding: 20px;
   font-style: italic;
+}
+
+.dark-mode .no-markers {
+  color: #aaa;
 }
 
 /* Settings */

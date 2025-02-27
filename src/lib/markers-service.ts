@@ -6,7 +6,6 @@ export interface Marker {
   description: string;
   coordinates: LngLatLike | null;
   google_maps_link: string;
-  scale?: number;
   emojiType?: string;
   timestamp?: Date; // Adding timestamp field
 }
@@ -113,7 +112,6 @@ function parseCSV(csvText: string): Marker[] {
   const descriptionIndex = headers.findIndex(h => h.trim() === 'ლოკაციის აღწერა');
   const coordinatesIndex = headers.findIndex(h => h.includes('კოორდინატები'));
   const googleMapsLinkIndex = headers.findIndex(h => h.trim() === 'Google Maps-ის ლინკი');
-  const scaleIndex = headers.findIndex(h => h.trim() === 'მარკერის ზომა');
   const emojiTypeIndex = headers.findIndex(h => h.includes('ლოკაციის ტიპი'));
   
   // Log the indexes to debug
@@ -123,7 +121,6 @@ function parseCSV(csvText: string): Marker[] {
     descriptionIndex,
     coordinatesIndex,
     googleMapsLinkIndex,
-    scaleIndex,
     emojiTypeIndex
   });
   
@@ -170,13 +167,6 @@ function parseCSV(csvText: string): Marker[] {
         }
       }
       
-      // Process scale if it exists, default to 1 if not
-      let scale: number | undefined = 1;
-      if (scaleIndex >= 0 && values[scaleIndex]) {
-        const parsedScale = parseFloat(values[scaleIndex]);
-        scale = !isNaN(parsedScale) ? parsedScale : 1;
-      }
-      
       // Only add valid markers with coordinates
       if (coordinates !== null) {
         // Process emoji type - handle format like "☕ - კაფე" by extracting just the emoji
@@ -202,7 +192,6 @@ function parseCSV(csvText: string): Marker[] {
           description: descriptionIndex >= 0 && values[descriptionIndex] ? values[descriptionIndex] : '',
           coordinates,
           google_maps_link: googleMapsLinkIndex >= 0 && values[googleMapsLinkIndex] ? values[googleMapsLinkIndex] : '#',
-          scale,
           emojiType,
           timestamp
         };
@@ -267,17 +256,29 @@ function parseCSVLine(line: string): string[] {
 // Function to fetch markers from Google Sheets
 export async function fetchMarkers(): Promise<void> {
   try {
-    markersError.set(null); // Reset error state
-    const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vTtH19FvWQJmQ4bsS_iEMws13YvEgPE_6QaUM2k3LV0d0682bYGCTTWYexlHoZLsvQxS8620ROLYaFS/pub?output=csv");
+    markersError.set(null);
+    
+    // Add cache-busting parameter to prevent caching
+    const timestamp = new Date().getTime();
+    const response = await fetch(`https://docs.google.com/spreadsheets/d/e/2PACX-1vTtH19FvWQJmQ4bsS_iEMws13YvEgPE_6QaUM2k3LV0d0682bYGCTTWYexlHoZLsvQxS8620ROLYaFS/pub?output=csv&t=${timestamp}`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch markers: ${response.status}`);
     }
     
     const text = await response.text();
+    if (!text.trim()) {
+      throw new Error('Empty response received');
+    }
+    
     const parsedMarkers = parseCSV(text);
+    if (parsedMarkers.length === 0) {
+      throw new Error('No valid markers found in the data');
+    }
+    
     markers.set(parsedMarkers);
   } catch (error) {
+    console.error('Error fetching markers:', error);
     markers.set([]);
     markersError.set(error instanceof Error ? error.message : 'Failed to fetch markers');
   }

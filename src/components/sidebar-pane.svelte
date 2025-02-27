@@ -13,13 +13,20 @@
   .sidebar-pane {
     display: none;
     padding: 10px;
+    overflow-y: auto;
+    height: 100%;
+    -ms-overflow-style: none;  /* Hide scrollbar for IE and Edge */
+    scrollbar-width: none;  /* Hide scrollbar for Firefox */
+  }
+
+  .sidebar-pane::-webkit-scrollbar {
+    display: none;  /* Hide scrollbar for Chrome, Safari and Opera */
   }
 
   .sidebar-pane.active {
     display: block;
   }
   
-  /* Dark mode styles */
   .sidebar-pane.dark-mode {
     color: #f0f0f0;
   }

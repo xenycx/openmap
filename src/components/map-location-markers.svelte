@@ -8,7 +8,7 @@
   let markerObjects: { marker: Marker, popup: Popup }[] = [];
   export let showMarkers = true;
   export let showFormPopup = false;
-  let refreshInterval: number;
+  let refreshInterval: ReturnType<typeof setInterval> | undefined;
 
   // Array of emoji markers to use
   const emojiMarkers = ['📍'];
@@ -65,7 +65,7 @@
   }
 
   // Update markers on the map
-  function updateMarkers() {
+  export function updateMarkers() {
     if (!$map) {
       return;
     }
@@ -78,72 +78,63 @@
     markerObjects = [];
 
     // Create new markers from CSV data
-    $markers
-      .filter(markerData => {
-        const hasCoords = markerData.coordinates !== null;
-        return hasCoords;
-      })
-      .forEach((markerData, index) => {
-        const popup = new Popup({
-          closeButton: true,
-          closeOnClick: true,
-          className: $mapDarkMode ? 'dark-mode' : ''
-        }).setHTML(`
-          <div class="marker-popup">
-            <h3>${markerData.name}</h3>
-            ${markerData.description ? `<p>${markerData.description}</p>` : ''}
-            ${markerData.google_maps_link ? 
-              `<a href="${markerData.google_maps_link}" target="_blank" rel="noopener noreferrer">
-                 Google Maps-ზე გახსნა
-               </a>` : ''}
-          </div>
-        `);
+    if ($markers && $markers.length > 0) {
+      $markers
+        .filter(markerData => markerData.coordinates !== null)
+        .forEach((markerData, index) => {
+          const popup = new Popup({
+            closeButton: true,
+            closeOnClick: true,
+            className: $mapDarkMode ? 'dark-mode' : ''
+          }).setHTML(`
+            <div class="marker-popup">
+              <h3>${markerData.name}</h3>
+              ${markerData.description ? `<p>${markerData.description}</p>` : ''}
+              ${markerData.google_maps_link ? 
+                `<a href="${markerData.google_maps_link}" target="_blank" rel="noopener noreferrer">
+                   Google Maps-ზე გახსნა
+                 </a>` : ''}
+            </div>
+          `);
 
-        // Create emoji marker element
-        const el = document.createElement('div');
-        el.className = 'marker';
-        
-        // Get appropriate emoji
-        const emoji = getEmoji(markerData, index);
-        el.textContent = emoji;
-        
-        // Scale based on marker properties if available
-        const scale = markerData.scale || 1;
-        el.style.fontSize = `${24 * scale}px`;
-        
-        const marker = new Marker({
-          element: el
-        })
-        .setLngLat(markerData.coordinates!)
-        .setPopup(popup);
-        
-        if (showMarkers) {
-          marker.addTo($map);
-        }
-        markerObjects.push({ marker, popup });
-      });
-  }
-
-  function handleCloseFormPopup() {
-    showFormPopup = false;
-  }
-
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape' && showFormPopup) {
-      handleCloseFormPopup();
+          // Create emoji marker element
+          const el = document.createElement('div');
+          el.className = 'marker';
+          
+          // Get appropriate emoji
+          const emoji = getEmoji(markerData, index);
+          el.textContent = emoji;
+          
+          // Set fixed scale of 0.8
+          el.style.fontSize = `${24 * 0.8}px`;
+          
+          const marker = new Marker({
+            element: el
+          })
+          .setLngLat(markerData.coordinates!)
+          .setPopup(popup);
+          
+          if (showMarkers) {
+            marker.addTo($map);
+          }
+          
+          markerObjects.push({ marker, popup });
+        });
     }
   }
 
-  // Watch for map, markers, and dark mode changes
-  $: if ($map && $markers) {
+  // Make updateMarkers reactive to marker store changes
+  $: if ($markers) {
+    updateMarkers();
+  }
+
+  // Watch for map and dark mode changes
+  $: if ($map) {
     updateMarkers();
   }
 
   $: if ($mapDarkMode) {
-    // Update popup styles when dark mode changes
-    markerObjects.forEach(({ popup }) => {
-      popup.getElement()?.classList.toggle('dark-mode', $mapDarkMode);
-    });
+    updateMarkers();
   }
 
   onMount(() => {
@@ -154,9 +145,6 @@
         fetchMarkers().then(() => {
           updateMarkers();
         });
-        
-        // Set up interval to refresh markers every 30 seconds
-        refreshInterval = window.setInterval(fetchMarkers, 30000);
       }
     });
     
@@ -169,6 +157,16 @@
       window.removeEventListener('keydown', handleKeydown);
     };
   });
+
+  function handleCloseFormPopup() {
+    showFormPopup = false;
+  }
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && showFormPopup) {
+      handleCloseFormPopup();
+    }
+  }
 
   onDestroy(() => {
     // Clear interval on component destroy

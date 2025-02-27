@@ -38,6 +38,14 @@
     showFormPopup = !showFormPopup;
   }
   
+  // Add refresh function
+  async function handleRefresh() {
+    await fetchMarkers();
+    if (markersComponent) {
+      markersComponent.updateMarkers();
+    }
+  }
+
   // Update map style when dark mode changes
   $: currentMapStyle = $mapDarkMode ? darkMapStyle : mapStyle;
   
@@ -93,7 +101,16 @@
       </SidebarPane>
       
       <SidebarPane id="markers" active={activeTab === 'markers'}>
-        <h2>📍 მარკერების სია</h2>
+        <h2>
+          📍 მარკერების სია
+          <button 
+            class="refresh-button" 
+            on:click={handleRefresh}
+            title="განახლება"
+          >
+            🔄
+          </button>
+        </h2>
         {#if $markersError}
           <div class="error-message">
             {$markersError}
@@ -169,3 +186,23 @@
     </svelte:fragment>
   </Sidebar>
 </div>
+
+<style>
+  /* existing styles */
+  
+  .refresh-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    vertical-align: middle;
+    color: inherit;
+  }
+
+  .refresh-button:hover {
+    transform: rotate(180deg);
+  }
+</style>
