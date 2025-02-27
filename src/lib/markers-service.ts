@@ -6,6 +6,9 @@ export interface Marker {
   description: string;
   coordinates: LngLatLike | null;
   google_maps_link: string;
+  scale?: number;
+  emojiType?: string;
+  timestamp?: Date; // Adding timestamp field
 }
 
 // Create a store for markers and error state
@@ -44,8 +47,39 @@ function dmsToDecimal(dmsStr: string): number | null {
   }
 }
 
-// Parse coordinates in DMS format
+// Parse decimal format coordinates (e.g. 41.68875284248156, 44.796152289079274)
+function parseDecimalCoordinates(coordStr: string): LngLatLike | null {
+  try {
+    // Split on comma and trim whitespace
+    const parts = coordStr.split(',').map(part => part.trim());
+    
+    if (parts.length !== 2) return null;
+
+    const lat = parseFloat(parts[0]);
+    const lng = parseFloat(parts[1]);
+
+    if (isNaN(lat) || isNaN(lng)) return null;
+
+    // Validate coordinates are within valid ranges
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return null;
+    }
+
+    return [lng, lat]; // MapLibre uses [longitude, latitude] order
+  } catch (error) {
+    return null;
+  }
+}
+
+// Parse coordinates in either DMS or decimal format
 function parseCoordinates(coordStr: string): LngLatLike | null {
+  // First try to parse as decimal format
+  const decimalCoords = parseDecimalCoordinates(coordStr);
+  if (decimalCoords !== null) {
+    return decimalCoords;
+  }
+  
+  // If decimal parsing fails, try DMS format
   try {
     // Remove any extra quotes and split on whitespace
     const parts = coordStr.replace(/"/g, '').trim().split(/\s+/);
@@ -71,60 +105,116 @@ function parseCoordinates(coordStr: string): LngLatLike | null {
 // Parse CSV data into markers
 function parseCSV(csvText: string): Marker[] {
   const lines = csvText.split('\n');
+  
   if (lines.length < 2) {
     throw new Error('CSV file is empty or invalid');
   }
-
+  
   const headers = lines[0].split(',');
   
   // Updated field names to match the Georgian CSV headers
+  const timestampIndex = headers.findIndex(h => h.trim() === 'Timestamp');
   const nameIndex = headers.findIndex(h => h.trim() === 'ლოკაციის სახელი');
   const descriptionIndex = headers.findIndex(h => h.trim() === 'ლოკაციის აღწერა');
   const coordinatesIndex = headers.findIndex(h => h.includes('კოორდინატები'));
   const googleMapsLinkIndex = headers.findIndex(h => h.trim() === 'Google Maps-ის ლინკი');
-
+  const scaleIndex = headers.findIndex(h => h.trim() === 'მარკერის ზომა');
+  // Updated to match the actual column name in your CSV
+  const emojiTypeIndex = headers.findIndex(h => h.includes('ლოკაციის ტიპი'));
+  
   if (nameIndex === -1 || coordinatesIndex === -1) {
     throw new Error('Required columns are missing from the CSV');
   }
   
   let validMarkers = 0;
   let skippedMarkers = 0;
+  let decimalCoordinateCount = 0;
+  let dmsCoordinateCount = 0;
   
-  const parsedMarkers = lines.slice(1)
+  const parsedMarkers: Marker[] = [];
+  
+  lines.slice(1)
     .filter(line => line.trim() !== '')
-    .map(line => {
+    .forEach(line => {
       const values = parseCSVLine(line);
       let coordinates: LngLatLike | null = null;
-
+      
       // Process coordinates if they exist
       if (coordinatesIndex >= 0 && values[coordinatesIndex]) {
-        coordinates = parseCoordinates(values[coordinatesIndex]);
+        const coordStr = values[coordinatesIndex];
+        
+        // Try decimal format first
+        coordinates = parseDecimalCoordinates(coordStr);
+        if (coordinates !== null) {
+          decimalCoordinateCount++;
+        } else {
+          // Try DMS format if decimal format fails
+          coordinates = parseCoordinates(coordStr);
+          if (coordinates !== null) {
+            dmsCoordinateCount++;
+          }
+        }
       }
+      
+      // Process scale if it exists, default to 1 if not
+      let scale: number | undefined = 1;
+      if (scaleIndex >= 0 && values[scaleIndex]) {
+        const parsedScale = parseFloat(values[scaleIndex]);
+        scale = !isNaN(parsedScale) ? parsedScale : 1;
+      }
+      
+      // Only add valid markers with coordinates
+      if (coordinates !== null) {
+        // Process emoji type - handle format like "☕ - კაფე" by extracting just the emoji
+        let emojiType: string | undefined = undefined;
+        if (emojiTypeIndex >= 0 && values[emojiTypeIndex]) {
+          const emojiTypeStr = values[emojiTypeIndex].trim();
+          // Extract just the emoji if the format is "emoji - description"
+          if (emojiTypeStr.includes(' - ')) {
+            emojiType = emojiTypeStr.split(' - ')[0].trim();
+          } else {
+            emojiType = emojiTypeStr;
+          }
+        }
 
-      const marker = {
-        name: nameIndex >= 0 && values[nameIndex] ? values[nameIndex] : 'უსახელო ლოკაცია',
-        description: descriptionIndex >= 0 && values[descriptionIndex] ? values[descriptionIndex] : '',
-        coordinates,
-        google_maps_link: googleMapsLinkIndex >= 0 && values[googleMapsLinkIndex] ? values[googleMapsLinkIndex] : '#'
-      };
-
-      if (marker.coordinates) {
+        // Parse timestamp if available
+        let timestamp: Date | undefined = undefined;
+        if (timestampIndex >= 0 && values[timestampIndex]) {
+          timestamp = new Date(values[timestampIndex]);
+        }
+        
+        const marker: Marker = {
+          name: nameIndex >= 0 && values[nameIndex] ? values[nameIndex] : 'უსახელო ლოკაცია',
+          description: descriptionIndex >= 0 && values[descriptionIndex] ? values[descriptionIndex] : '',
+          coordinates,
+          google_maps_link: googleMapsLinkIndex >= 0 && values[googleMapsLinkIndex] ? values[googleMapsLinkIndex] : '#',
+          scale,
+          emojiType,
+          timestamp
+        };
+        
+        parsedMarkers.push(marker);
         validMarkers++;
-        return marker;
       } else {
         skippedMarkers++;
-        return null;
       }
-    })
-    .filter((marker): marker is Marker => marker !== null);
+    });
+  
+  // Sort markers by timestamp in descending order (newest first)
+  parsedMarkers.sort((a, b) => {
+    if (!a.timestamp && !b.timestamp) return 0;
+    if (!a.timestamp) return 1;
+    if (!b.timestamp) return -1;
+    return b.timestamp.getTime() - a.timestamp.getTime();
+  });
 
-  // Update error state with summary
-  if (skippedMarkers > 0) {
-    markersError.set(`Processed ${validMarkers} valid markers. Skipped ${skippedMarkers} invalid markers.`);
-  } else {
-    markersError.set(null);
-  }
-
+  // DEBUG OPTIONS FOR THE MARKERS
+  // if (skippedMarkers > 0 || validMarkers > 0) {
+  //   markersError.set(`Processed ${validMarkers} valid markers (${decimalCoordinateCount} decimal format, ${dmsCoordinateCount} DMS format). Skipped ${skippedMarkers} invalid markers.`);
+  // } else {
+  //   markersError.set(null);
+  // }
+  
   return parsedMarkers;
 }
 

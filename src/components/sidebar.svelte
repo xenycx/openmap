@@ -12,6 +12,11 @@
     collapsed = !collapsed;
     dispatch('toggle', { collapsed });
   }
+
+  // To dispatch form popup toggle event
+  function toggleFormPopup() {
+    dispatch('toggleForm');
+  }
 </script>
 
 <div class={`sidebar sidebar-${position} ${collapsed ? 'collapsed' : ''} ${$sidebarDarkMode ? 'dark-mode' : ''}`}>
@@ -20,7 +25,19 @@
       <slot name="tabs"></slot>
     </ul>
     <ul role="tablist" class="sidebar-bottom-tabs">
+      <!-- Form button moved higher in the list -->
+      <li class="sidebar-form-button" title="Open Form">
+        <button type="button" on:click={toggleFormPopup} class="sidebar-button">
+          <i class="fas fa-pen-to-square"></i>
+        </button>
+      </li>
       <slot name="bottom-tabs"></slot>
+      <!-- Toggle sidebar button moved to bottom of bottom tabs -->
+      <li class="sidebar-toggle" title={collapsed ? "Show sidebar" : "Hide sidebar"}>
+        <button type="button" on:click={toggle} class="sidebar-button">
+          <i class={`fas ${collapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
+        </button>
+      </li>
     </ul>
   </div>
   
@@ -163,5 +180,35 @@
   
   .sidebar-panes {
     padding: 10px 20px;
+  }
+
+  /* Sidebar toggle button - moved to bottom */
+  .sidebar-toggle {
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Sidebar button styling - shared between both buttons */
+  .sidebar-button {
+    display: block;
+    width: 100%;
+    padding: 8px 0;
+    color: #333;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .sidebar.dark-mode .sidebar-button {
+    color: #f0f0f0;
+  }
+
+  /* Form button styling */
+  .sidebar-form-button {
+    margin-bottom: 15px;
+    margin-top: 15px;
   }
 </style>

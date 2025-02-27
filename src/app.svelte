@@ -8,14 +8,16 @@
   import SidebarPane from "./components/sidebar-pane.svelte";
   import { sidebarDarkMode, mapDarkMode, toggleSidebarDarkMode, toggleMapDarkMode } from "./lib/theme-store";
   import { markers, fetchMarkers, markersError } from "./lib/markers-service";
+  import './app.css';
   
   // Sidebar state
-  let sidebarCollapsed = false;
+  let sidebarCollapsed = true; // Default to collapsed
   let activeTab = 'home';
   let markersComponent: MapLocationMarkers;
   let showMarkers = true;
   let mapStyle = "https://tiles.openfreemap.org/styles/liberty";
   const darkMapStyle = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+  let showFormPopup = false;
   
   // Handle tab clicks
   function handleTabClick(tabId: string) {
@@ -29,6 +31,11 @@
     if (markersComponent) {
       markersComponent.toggleMarkers(showMarkers);
     }
+  }
+  
+  // Toggle form popup
+  function handleToggleForm() {
+    showFormPopup = !showFormPopup;
   }
   
   // Update map style when dark mode changes
@@ -51,10 +58,18 @@
     zoom={7}
     style={currentMapStyle}
   >
-    <MapLocationMarkers bind:this={markersComponent} {showMarkers} />
+    <MapLocationMarkers 
+      bind:this={markersComponent} 
+      {showMarkers} 
+      bind:showFormPopup={showFormPopup} 
+    />
   </MapLibre>
   
-  <Sidebar position="left" bind:collapsed={sidebarCollapsed}>
+  <Sidebar 
+    position="left" 
+    bind:collapsed={sidebarCollapsed} 
+    on:toggleForm={handleToggleForm}
+  >
     <svelte:fragment slot="tabs">
       <SidebarTab id="home" icon="fa-home" active={activeTab === 'home'} 
         on:click={() => handleTabClick('home')} />
@@ -89,7 +104,14 @@
             {#each $markers as marker}
               <li class="marker-item">
                 <div class="marker-header">
-                  <span class="marker-title">{marker.name}</span>
+                  <span class="marker-title">
+                    {#if marker.emojiType}
+                      <span class="marker-emoji">{marker.emojiType}</span>
+                    {:else}
+                      <span class="marker-emoji">📍</span>
+                    {/if}
+                    {marker.name}
+                  </span>
                 </div>
                 {#if marker.description}
                   <p class="marker-description">{marker.description}</p>
@@ -122,19 +144,19 @@
         <div class="setting-option">
           <label>
             <input type="checkbox" checked={showMarkers} on:change={handleMarkersToggle}>
-            <span>მარკერების ჩვენება</span>
+            <span>📍 მარკერების ჩვენება</span>
           </label>
         </div>
         <div class="setting-option">
           <label>
             <input type="checkbox" checked={$sidebarDarkMode} on:change={toggleSidebarDarkMode}>
-            <span>საიდბარის მუქი თემა</span>
+            <span>🌓 საიდბარის მუქი თემა</span>
           </label>
         </div>
         <div class="setting-option">
           <label>
             <input type="checkbox" checked={$mapDarkMode} on:change={toggleMapDarkMode}>
-            <span>რუკის მუქი თემა</span>
+            <span>🗺️ რუკის მუქი თემა</span>
           </label>
         </div>
       </SidebarPane>
@@ -147,146 +169,3 @@
     </svelte:fragment>
   </Sidebar>
 </div>
-
-<style>
-  :global(body) {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-    font-family: "BPG Square Banner 2013", sans-serif;
-    transition: background-color 0.3s;
-  }
-  
-  .map-container {
-    position: relative;
-    height: 100vh;
-    width: 100vw;
-  }
-  
-  :global(.maplibregl-map) {
-    height: 100%;
-    width: 100%;
-  }
-  
-  :global(h1, h2, h3, p, div, button, label, input, a) {
-    font-family: "BPG Square Banner 2013", sans-serif;
-  }
-  
-  .markers-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .marker-item {
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  :global(.dark-mode) .marker-item {
-    background: #2a2a2a;
-    border: 1px solid #444;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  }
-
-  .marker-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
-
-  .marker-header {
-    margin-bottom: 10px;
-  }
-
-  .marker-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-  }
-
-  :global(.dark-mode) .marker-title {
-    color: #f0f0f0;
-  }
-
-  .marker-description {
-    font-size: 0.9rem;
-    color: #666;
-    margin: 0 0 15px 0;
-  }
-
-  :global(.dark-mode) .marker-description {
-    color: #bbb;
-  }
-
-  .marker-button {
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background-color: #0066ff;
-    color: #ffffff;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-  }
-
-  .marker-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,102,255,0.3);
-  }
-
-  :global(.dark-mode) .marker-button {
-    background-color: #00ff8c;
-    color: #1a1a1a;
-  }
-
-  :global(.dark-mode) .marker-button:hover {
-    box-shadow: 0 2px 8px rgba(0,255,140,0.3);
-  }
-
-  .no-markers {
-    text-align: center;
-    color: #888;
-    font-style: italic;
-  }
-  
-  .setting-option {
-    margin: 10px 0;
-  }
-  
-  .setting-option label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-  }
-  
-  .setting-option span {
-    margin-left: 8px;
-  }
-
-  .error-message {
-    background-color: #fff3f3;
-    border: 1px solid #ffcdd2;
-    color: #d32f2f;
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 16px;
-    font-size: 14px;
-  }
-
-  :global(.dark-mode) .error-message {
-    background-color: #421e1e;
-    border-color: #642626;
-    color: #ff8a8a;
-  }
-</style>

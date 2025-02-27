@@ -2,15 +2,40 @@
   import { mapContext } from "svelte-maplibre";
   import { Marker, Popup } from "maplibre-gl";
   import { onMount, onDestroy } from "svelte";
-  import { markers, fetchMarkers } from "../lib/markers-service";
+  import { markers, fetchMarkers, type Marker as MarkerData } from "../lib/markers-service";
   import { mapDarkMode } from "../lib/theme-store";
-
   const { map } = mapContext();
   let markerObjects: { marker: Marker, popup: Popup }[] = [];
   export let showMarkers = true;
+  export let showFormPopup = false;
   let refreshInterval: number;
-  let showFormPopup = false;
 
+  // Array of emoji markers to use
+  const emojiMarkers = ['📍'];
+  
+  // Emoji by category with type record to ensure type safety
+  const emojiCategories: Record<string, string> = {
+    'default': '📍',
+    'food': '🍽️',
+    'hotel': '🏨',
+    'attraction': '🎭',
+    'shopping': '🛍️',
+    'nature': '🌳',
+    'museum': '🏛️',
+    'parking': '🅿️',
+    'hospital': '🏥',
+    'info': 'ℹ️',
+    'monument': '🗿',
+    'transport': '🚆',
+    'cafe': '☕',
+    'restaurant': '🍴',
+    'bar': '🍸',
+    'beach': '🏖️',
+    'mountain': '⛰️',
+    'church': '⛪',
+    'park': '🌲'
+  };
+  
   // Show or hide markers based on the showMarkers state
   export function toggleMarkers(show: boolean) {
     showMarkers = show;
@@ -25,6 +50,24 @@
         marker.remove();
       });
     }
+  }
+
+  // Get appropriate emoji for marker
+  function getEmoji(markerData: MarkerData, index: number): string {
+    // If marker has a specific emoji directly provided, use it
+    if (markerData.emojiType) {
+      // If the emojiType is a single character (likely an emoji), use it directly
+      if (markerData.emojiType.length === 1 || markerData.emojiType.length === 2) {
+        return markerData.emojiType;
+      }
+      // Otherwise check if it's a category name in our map
+      if (markerData.emojiType in emojiCategories) {
+        return emojiCategories[markerData.emojiType];
+      }
+    }
+    
+    // Otherwise fall back to the rotating emoji array
+    return emojiMarkers[index % emojiMarkers.length];
   }
 
   // Update markers on the map
@@ -46,7 +89,7 @@
         const hasCoords = markerData.coordinates !== null;
         return hasCoords;
       })
-      .forEach((markerData) => {
+      .forEach((markerData, index) => {
         const popup = new Popup({
           closeButton: true,
           closeOnClick: true,
@@ -61,9 +104,21 @@
                </a>` : ''}
           </div>
         `);
+
+        // Create emoji marker element
+        const el = document.createElement('div');
+        el.className = 'marker';
+        
+        // Get appropriate emoji
+        const emoji = getEmoji(markerData, index);
+        el.textContent = emoji;
+        
+        // Scale based on marker properties if available
+        const scale = markerData.scale || 1;
+        el.style.fontSize = `${24 * scale}px`;
+        
         const marker = new Marker({
-          color: '#3FB1CE',
-          scale: 0.8
+          element: el
         })
         .setLngLat(markerData.coordinates!)
         .setPopup(popup);
@@ -75,13 +130,13 @@
       });
   }
 
-  function toggleFormPopup() {
-    showFormPopup = !showFormPopup;
+  function handleCloseFormPopup() {
+    showFormPopup = false;
   }
 
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'Escape' && showFormPopup) {
-      toggleFormPopup();
+      handleCloseFormPopup();
     }
   }
 
@@ -135,21 +190,10 @@
   });
 </script>
 
-<div class="form-button-container">
-  <button 
-    class="form-button" 
-    class:dark-mode={$mapDarkMode}
-    on:click={toggleFormPopup}
-  >
-     ფორმის გახსნა
-  </button>
-</div>
-
 {#if showFormPopup}
   <!-- Use a static div for the overlay background -->
   <div 
-    class="modal-overlay" 
-    class:dark-mode={$mapDarkMode}
+    class="modal-overlay"
     role="dialog"
     aria-modal="true"
     aria-label="Google Form"
@@ -157,21 +201,19 @@
     <!-- Use a button for the click-outside behavior -->
     <button
       class="overlay-button"
-      on:click={toggleFormPopup}
+      on:click={handleCloseFormPopup}
       aria-label="Close modal"
     >
       <span class="sr-only">Close modal</span>
     </button>
     
     <div 
-      class="modal-content" 
-      class:dark-mode={$mapDarkMode}
+      class="modal-content"
       role="document"
     >
       <button 
-        class="close-button" 
-        class:dark-mode={$mapDarkMode} 
-        on:click={toggleFormPopup}
+        class="close-button"
+        on:click={handleCloseFormPopup}
         aria-label="Close form"
       >
         &times;
@@ -190,162 +232,3 @@
     </div>
   </div>
 {/if}
-
-<style>
-  :global(.marker-popup) {
-    padding: 5px;
-  }
-
-  :global(.marker-popup h3) {
-    margin: 0 0 8px 0;
-    font-size: 16px;
-  }
-
-  :global(.marker-popup p) {
-    margin: 8px 0;
-    font-size: 14px;
-  }
-
-  :global(.marker-popup a) {
-    color: #0074d9;
-    text-decoration: none;
-    font-size: 14px;
-    display: inline-block;
-    margin-top: 8px;
-  }
-
-  :global(.marker-popup a:hover) {
-    text-decoration: underline;
-  }
-
-  :global(.dark-mode.maplibregl-popup .maplibregl-popup-content) {
-    background-color: #282c34;
-    color: #f0f0f0;
-    border: 1px solid #666;
-  }
-
-  :global(.dark-mode .marker-popup a) {
-    color: #61dafb;
-  }
-
-  :global(.dark-mode .marker-popup a:hover) {
-    color: #a0e9ff;
-  }
-
-  .form-button-container {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-  }
-
-  .form-button {
-    padding: 8px 16px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background: white;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s ease;
-  }
-
-  .form-button:hover {
-    background: #f0f0f0;
-  }
-
-  .form-button.dark-mode {
-    background: #282c34;
-    color: #f0f0f0;
-    border-color: #666;
-  }
-
-  .form-button.dark-mode:hover {
-    background: #363b44;
-  }
-
-  .overlay-button {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    border: none;
-    cursor: pointer;
-    margin: 0;
-    padding: 0;
-  }
-
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-  }
-
-  .modal-content {
-    position: relative;
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
-  .modal-content.dark-mode {
-    background: #282c34;
-    color: #f0f0f0;
-    border: 1px solid #666;
-  }
-
-  .close-button {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: white;
-    z-index: 1;
-  }
-
-  .close-button:hover {
-    background: #f0f0f0;
-  }
-
-  .close-button.dark-mode {
-    background: #363b44;
-    color: #f0f0f0;
-  }
-
-  .close-button.dark-mode:hover {
-    background: #444954;
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-</style>
