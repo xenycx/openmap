@@ -11,7 +11,7 @@
   import './app.css';
   
   // Sidebar state
-  let sidebarCollapsed = false; // Default to collapsed
+  let sidebarCollapsed = true;
   let activeTab = 'markers';
   let markersComponent: MapLocationMarkers;
   let showMarkers = true;
@@ -21,8 +21,14 @@
   
   // Handle tab clicks
   function handleTabClick(tabId: string) {
-    activeTab = tabId;
-    sidebarCollapsed = false;
+    if (activeTab === tabId) {
+      // If clicking the same tab, toggle the sidebar
+      sidebarCollapsed = !sidebarCollapsed;
+    } else {
+      // If clicking a different tab, open the sidebar and switch tabs
+      activeTab = tabId;
+      sidebarCollapsed = false;
+    }
   }
   
   // Toggle markers
