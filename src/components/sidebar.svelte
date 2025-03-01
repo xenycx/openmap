@@ -61,10 +61,11 @@
     overflow: hidden;
     z-index: 2000;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: #282c33;
     transition: width 500ms, transform 500ms;
     width: calc(100% - 40px);
     max-width: 400px;
+    color: #f0f0f0;
   }
 
   .sidebar.collapsed {
@@ -79,7 +80,7 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: #1b1d22;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -111,7 +112,7 @@
     width: 40px;
     height: 40px;
     padding: 0;
-    color: #333;
+    color: #f0f0f0;
     background: none;
     border: none;
     cursor: pointer;
@@ -120,7 +121,7 @@
   }
 
   .sidebar-button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: #4a515a;
   }
 
   .dark-mode .sidebar-button {
@@ -128,7 +129,7 @@
   }
 
   .dark-mode .sidebar-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #4a515a;
   }
 
   /* Form button and toggle button specific styles */
@@ -153,11 +154,11 @@
     left: 40px;
     right: 0;
     overflow-y: auto;
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: #282c33;
   }
 
   .sidebar.dark-mode .sidebar-content {
-    background-color: rgba(40, 44, 52, 0.95);
+    background-color: #282c33;
   }
 
   .sidebar.collapsed .sidebar-content {
@@ -166,13 +167,13 @@
 
   /* Dark mode styles */
   .sidebar.dark-mode {
-    background-color: rgba(40, 44, 52, 0.95);
+    background-color: #282c33;
     color: #f0f0f0;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.85);
   }
 
   .sidebar.dark-mode .sidebar-tabs {
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: #1b1d22;
   }
 
   /* Small screen optimizations */
@@ -202,7 +203,7 @@
   /* Mobile optimizations */
   @media (max-width: 768px) {
     .sidebar-tabs {
-      background-color: rgba(0, 0, 0, 0.15);
+      background-color: #1b1d22;
       width: 44px; /* Slightly wider for better touch targets */
     }
     
@@ -234,17 +235,17 @@
 
   /* Fix dark mode background issues */
   .sidebar.dark-mode {
-    background-color: rgba(40, 44, 52, 0.95);
+    background-color: #282c33;
     color: #f0f0f0;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.85);
   }
 
   .sidebar.dark-mode .sidebar-tabs {
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: #1b1d22;
   }
 
   .sidebar.dark-mode .sidebar-content {
-    background-color: rgba(40, 44, 52, 0.95);
+    background-color: #282c33;
   }
 
   /* Ensure buttons are always visible on mobile */
@@ -262,11 +263,11 @@
     }
     
     .sidebar-button:active {
-      background-color: rgba(0, 0, 0, 0.2);
+      background-color: #4a515a;
     }
     
     .dark-mode .sidebar-button:active {
-      background-color: rgba(255, 255, 255, 0.2);
+      background-color: #4a515a;
     }
   }
 </style>

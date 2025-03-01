@@ -39,7 +39,7 @@
     width: 40px;
     height: 40px;
     padding: 0;
-    color: #555;
+    color: #aaa;
     background: none;
     border: none;
     cursor: pointer;
@@ -61,12 +61,12 @@
   }
 
   .active .tab-button::after {
-    background: #0074d9;
+    background: #61dafb;
   }
 
   .tab-button:hover {
-    color: #333;
-    background-color: rgba(0, 0, 0, 0.1);
+    color: #f0f0f0;
+    background-color: #4a515a;
   }
 
   .tab-button.dark-mode {
@@ -75,11 +75,11 @@
 
   .tab-button.dark-mode:hover {
     color: #fff;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #4a515a;
   }
 
   .active .tab-button {
-    color: #0074d9;
+    color: #61dafb;
   }
 
   .active .tab-button.dark-mode {

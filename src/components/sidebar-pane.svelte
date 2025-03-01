@@ -24,6 +24,7 @@
   
   .sidebar-pane.dark-mode {
     color: #f0f0f0;
+    background-color: #282c33;
   }
 
   /* Hide scrollbar but keep functionality */

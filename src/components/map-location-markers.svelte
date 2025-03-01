@@ -3,6 +3,7 @@
   import { Marker, Popup } from "maplibre-gl";
   import { onMount, onDestroy } from "svelte";
   import { markers, fetchMarkers, type Marker as MarkerData } from "../lib/markers-service";
+  import { filteredMarkers } from "../lib/filter-store";
   import { mapDarkMode } from "../lib/theme-store";
   const { map } = mapContext();
   let markerObjects: { marker: Marker, popup: Popup }[] = [];
@@ -77,9 +78,9 @@
     });
     markerObjects = [];
 
-    // Create new markers from CSV data
-    if ($markers && $markers.length > 0) {
-      $markers
+    // Create new markers from filtered data
+    if ($filteredMarkers && $filteredMarkers.length > 0) {
+      $filteredMarkers
         .filter(markerData => markerData.coordinates !== null)
         .forEach((markerData, index) => {
           const popup = new Popup({
@@ -124,7 +125,7 @@
   }
 
   // Make updateMarkers reactive to marker store changes
-  $: if ($markers) {
+  $: if ($filteredMarkers) {
     updateMarkers();
   }
 
