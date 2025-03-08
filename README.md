@@ -6,3 +6,5 @@ Built with [svelte-maplibre](https://github.com/dimfeld/svelte-maplibre)
 pnpm install
 pnpm dev
 ```
+### Screenshot
+![screenshot](./public/screenshot.png)
