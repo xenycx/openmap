@@ -2,6 +2,12 @@
   import { EMOJI_CATEGORIES } from "../lib/constants";
   import { activeCategories, searchQuery, clearFilters, filteredMarkers } from "../lib/filter-store";
   import { sidebarDarkMode } from "../lib/theme-store";
+  import { fetchMarkers } from "../lib/markers-service";
+
+  let categoriesContainer: HTMLDivElement;
+  export let showMarkers = true;
+  export let onMarkersToggle: () => void;
+  export let onRefresh: () => void;
 
   // Function to toggle a category
   function toggleCategory(emoji: string) {
@@ -19,9 +25,42 @@
     const target = event.target as HTMLInputElement;
     searchQuery.set(target.value);
   }
+
+  function handleScroll(direction: 'left' | 'right', event: MouseEvent | TouchEvent) {
+    event.preventDefault();
+    if (!categoriesContainer) return;
+
+    const scrollAmount = categoriesContainer.offsetWidth * 0.75; // Scroll 75% of visible width
+    const currentScroll = categoriesContainer.scrollLeft;
+    
+    // Calculate target scroll position
+    const targetScroll = direction === 'left'
+      ? Math.max(0, currentScroll - scrollAmount)
+      : Math.min(
+          categoriesContainer.scrollWidth - categoriesContainer.clientWidth,
+          currentScroll + scrollAmount
+        );
+
+    // Smooth scroll to target position
+    categoriesContainer.scrollTo({
+      left: targetScroll,
+      behavior: 'smooth'
+    });
+  }
 </script>
 
 <div class="category-filter {$sidebarDarkMode ? 'dark-mode' : ''}">
+  <div class="controls-container">
+    <button class="control-button" on:click={onMarkersToggle}>
+      <i class="fas fa-map-marker-alt"></i>
+      {showMarkers ? 'დამალე მარკერები' : 'აჩვენე მარკერები'}
+    </button>
+    <button class="control-button" on:click={onRefresh}>
+      <i class="fas fa-sync-alt"></i>
+      განაახლე მარკერები
+    </button>
+  </div>
+
   <div class="search-container">
     <div class="search-input-container">
       <input 
@@ -44,7 +83,15 @@
   </div>
 
   <div class="categories-scroll-container">
-    <div class="categories-row">
+    <button 
+      class="scroll-button left" 
+      on:click={(e) => handleScroll('left', e)}
+      aria-label="Scroll categories left"
+    >
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    
+    <div class="categories-row" bind:this={categoriesContainer}>
       {#if $activeCategories.length > 0}
         <button class="clear-filters" on:click={clearFilters}>
           <i class="fas fa-times-circle"></i> 
@@ -62,6 +109,14 @@
         </button>
       {/each}
     </div>
+
+    <button 
+      class="scroll-button right" 
+      on:click={(e) => handleScroll('right', e)}
+      aria-label="Scroll categories right"
+    >
+      <i class="fas fa-chevron-right"></i>
+    </button>
   </div>
 
   <div class="results-container">
@@ -168,8 +223,56 @@
     margin-bottom: 16px;
     padding: 0 16px;
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
   }
-  
+
+  .scroll-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px; /* Match category button height */
+    width: 32px;
+    background-color: #363b42;
+    border: 1px solid #444;
+    color: #f0f0f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    z-index: 1;
+    position: relative;
+  }
+
+  .scroll-button.left {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    padding-left: 0;
+    padding-right: 8px;
+  }
+
+  .scroll-button.right {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    padding-right: 0;
+    padding-left: 8px;
+  }
+
+  .scroll-button:hover {
+    background-color: #4a515a;
+    border-color: #61dafb;
+  }
+
+  .scroll-button i {
+    font-size: 1rem;
+    margin: 0 auto;
+  }
+
   .categories-row {
     display: flex;
     overflow-x: auto;
@@ -178,6 +281,11 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
     scroll-behavior: smooth;
+    flex: 1;
+    align-items: center; /* Center categories vertically */
+    padding: 0;
+    overscroll-behavior-x: none; /* Prevent overscroll on touch devices */
+    scroll-snap-type: x mandatory; /* Enable smooth snap scrolling */
   }
   
   .categories-row::-webkit-scrollbar {
@@ -185,12 +293,14 @@
   }
   
   .category-button-small {
+    scroll-snap-align: start; /* Make buttons snap into place */
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 6px 10px;
+    height: 40px;
+    padding: 0 12px;
     background-color: #363b42;
     border: 1px solid #444;
     border-radius: 20px;
@@ -223,7 +333,8 @@
     align-items: center;
     gap: 5px;
     font-size: 0.8rem;
-    padding: 6px 10px;
+    height: 40px;
+    padding: 0 12px;
     background-color: #363b42;
     border: 1px solid #444;
     border-radius: 20px;
@@ -314,5 +425,32 @@
     text-align: center;
     color: #aaa;
     padding: 24px;
+  }
+
+  .controls-container {
+    padding: 0 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .control-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: #363b42;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #f0f0f0;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+
+  .control-button:hover {
+    background-color: #4a515a;
   }
 </style>
