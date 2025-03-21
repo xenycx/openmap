@@ -14,7 +14,7 @@
   
   // Sidebar state
   let sidebarCollapsed = true;
-  let activeTab = 'home';
+  let activeTab = 'markers';
   let markersComponent: MapLocationMarkers;
   let showMarkers = true;
   let mapStyle = "https://tiles.openfreemap.org/styles/liberty";
@@ -88,30 +88,44 @@
     <svelte:fragment slot="tabs">
       <SidebarTab id="home" icon="fa-home" active={activeTab === 'home'} 
         on:click={() => handleTabClick('home')} />
-      <SidebarTab id="about" icon="fa-info-circle" active={activeTab === 'about'} 
-        on:click={() => handleTabClick('about')} />
+      <SidebarTab id="categories" icon="fa-search" active={activeTab === 'categories'} 
+        on:click={() => handleTabClick('categories')} />
+      <SidebarTab id="info" icon="fa-info-circle" active={activeTab === 'info'} 
+        on:click={() => handleTabClick('info')} />
       <SidebarTab id="settings" icon="fa-cog" active={activeTab === 'settings'} 
         on:click={() => handleTabClick('settings')} />
     </svelte:fragment>
     
+    <svelte:fragment slot="bottom-tabs">
+      <SidebarTab id="about" icon="fa-question-circle" active={activeTab === 'about'} 
+        on:click={() => handleTabClick('about')} />
+    </svelte:fragment>
+    
     <svelte:fragment slot="content">
       <SidebarPane id="home" active={activeTab === 'home'}>
-        <CategoryFilterPane 
-          {showMarkers}
-          onMarkersToggle={handleMarkersToggle}
-          onRefresh={handleRefresh}
-        />
+        <h2>მთავარი გვერდი</h2>
+        <p>რუკის აპლიკაცია</p>
       </SidebarPane>
       
-      <SidebarPane id="about" active={activeTab === 'about'}>
-        <h2>ინფორმაცია</h2>
-        <p>საიდბარის ინსპირაცია აღებულია <b>sidebar-v2-დან</b>, იმპლემენტირებული <b>Svelte</b>-ში.</p>
+      <SidebarPane id="categories" active={activeTab === 'categories'}>
+        <CategoryFilterPane />
+      </SidebarPane>
+      
+      <SidebarPane id="info" active={activeTab === 'info'}>
+        <h2>რუკის ინფორმაცია</h2>
+        <p>რუკა აჩვენებს გეორგაფიულ ინფორმაციას საიდბარიში.</p>
         <p>აქ სხვა ელემენტების დამატება შეიძლება</p>
       </SidebarPane>
       
       <SidebarPane id="settings" active={activeTab === 'settings'}>
         <h2>პარამეტრები</h2>
         <p>პარამეტრების შეცვლა.</p>
+        <div class="setting-option">
+          <label>
+            <input type="checkbox" checked={showMarkers} on:change={handleMarkersToggle}>
+            <span>📍 მარკერების ჩვენება</span>
+          </label>
+        </div>
         <div class="setting-option">
           <label>
             <input type="checkbox" checked={$sidebarDarkMode} on:change={toggleSidebarDarkMode}>
@@ -124,6 +138,17 @@
             <span>🗺️ რუკის მუქი თემა</span>
           </label>
         </div>
+        <div class="setting-option">
+          <button class="refresh-button-large" on:click={handleRefresh}>
+            🔄 განაახლე მარკერები
+          </button>
+        </div>
+      </SidebarPane>
+      
+      <SidebarPane id="about" active={activeTab === 'about'}>
+        <h2>ინფორმაცია</h2>
+        <p>საიდბარის ინსპირაცია აღებულია <b>sidebar-v2-დან</b>, იმპლემენტირებული <b>Svelte</b>-ში.</p>
+        <p>მარკერები იტვირთება Google Sheets-დან.</p>
       </SidebarPane>
     </svelte:fragment>
   </Sidebar>
@@ -222,5 +247,23 @@
   /* Make sure marker emojis are visible */
   :global(.marker) {
     filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));
+  }
+  
+  .refresh-button-large {
+    background-color: #363b42;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: #f0f0f0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  
+  .refresh-button-large:hover {
+    background-color: #4a515a;
   }
 </style>
