@@ -1,6 +1,5 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { sidebarDarkMode } from '../lib/theme-store';
   
   export let id: string;
   export let icon: string;
@@ -16,7 +15,7 @@
 <li class={active ? 'active' : ''} title={id}>
   <button type="button" 
     on:click={handleClick}
-    class="tab-button {$sidebarDarkMode ? 'dark-mode' : ''}"
+    class="tab-button"
     aria-selected={active}
     role="tab"
   >
@@ -46,6 +45,7 @@
     font-size: 16px;
     transition: all 0.3s ease;
     position: relative;
+    touch-action: manipulation;
   }
 
   .tab-button::after {
@@ -69,32 +69,16 @@
     background-color: #4a515a;
   }
 
-  .tab-button.dark-mode {
-    color: #aaa;
-  }
-
-  .tab-button.dark-mode:hover {
-    color: #fff;
-    background-color: #4a515a;
-  }
-
   .active .tab-button {
     color: #61dafb;
-  }
-
-  .active .tab-button.dark-mode {
-    color: #61dafb;
-  }
-
-  .active .tab-button.dark-mode::after {
-    background: #61dafb;
   }
 
   /* Touch device optimizations */
   @media (hover: none) {
     .tab-button {
       padding: 12px 0;
-      height: 48px;
+      width: 44px;
+      height: 44px;
     }
 
     .tab-button::after {

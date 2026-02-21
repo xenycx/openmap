@@ -10,9 +10,10 @@ export interface Marker {
   timestamp?: Date; // Adding timestamp field
 }
 
-// Create a store for markers and error state
+// Create stores for markers, error, and loading state
 export const markers = writable<Marker[]>([]);
 export const markersError = writable<string | null>(null);
+export const markersLoading = writable<boolean>(false);
 
 // Function to convert DMS (Degrees, Minutes, Seconds) to decimal degrees
 function dmsToDecimal(dmsStr: string): number | null {
@@ -114,18 +115,7 @@ function parseCSV(csvText: string): Marker[] {
   const googleMapsLinkIndex = headers.findIndex(h => h.trim() === 'Google Maps-ის ლინკი');
   const emojiTypeIndex = headers.findIndex(h => h.includes('ლოკაციის ტიპი'));
   
-  // Log the indexes to debug
-  console.log('Header indexes:', {
-    timestampIndex,
-    nameIndex,
-    descriptionIndex,
-    coordinatesIndex,
-    googleMapsLinkIndex,
-    emojiTypeIndex
-  });
-  
-  // For debugging: print the actual headers
-  console.log('Actual headers:', headers);
+
   
   if (nameIndex === -1 || coordinatesIndex === -1) {
     throw new Error('Required columns are missing from the CSV');
@@ -144,9 +134,6 @@ function parseCSV(csvText: string): Marker[] {
     .filter(line => line.trim() !== '')
     .forEach(line => {
       const values = parseCSVLine(line);
-      
-      // For debugging
-      console.log('Parsed line:', values);
       
       let coordinates: LngLatLike | null = null;
       
@@ -257,6 +244,7 @@ function parseCSVLine(line: string): string[] {
 export async function fetchMarkers(): Promise<void> {
   try {
     markersError.set(null);
+    markersLoading.set(true);
     
     // Add cache-busting parameter to prevent caching
     const timestamp = new Date().getTime();
@@ -281,5 +269,7 @@ export async function fetchMarkers(): Promise<void> {
     console.error('Error fetching markers:', error);
     markers.set([]);
     markersError.set(error instanceof Error ? error.message : 'Failed to fetch markers');
+  } finally {
+    markersLoading.set(false);
   }
 }

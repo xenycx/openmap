@@ -1,6 +1,5 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { sidebarDarkMode } from '../lib/theme-store';
   
   export let position: 'left' | 'right' = 'left';
   export let collapsed: boolean = false;
@@ -19,7 +18,7 @@
   }
 </script>
 
-<div class={`sidebar sidebar-${position} ${collapsed ? 'collapsed' : ''} ${$sidebarDarkMode ? 'dark-mode' : ''}`}>
+<div class={`sidebar sidebar-${position} ${collapsed ? 'collapsed' : ''}`}>
   <div class="sidebar-tabs">
     <ul role="tablist" class="sidebar-main-tabs">
       <slot name="tabs"></slot>
@@ -85,6 +84,7 @@
     flex-direction: column;
     justify-content: space-between;
     -webkit-overflow-scrolling: touch;
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   .sidebar-main-tabs {
@@ -101,7 +101,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding-bottom: 8px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Button styles */
@@ -121,14 +121,6 @@
   }
 
   .sidebar-button:hover {
-    background-color: #4a515a;
-  }
-
-  .dark-mode .sidebar-button {
-    color: #f0f0f0;
-  }
-
-  .dark-mode .sidebar-button:hover {
     background-color: #4a515a;
   }
 
@@ -154,26 +146,13 @@
     left: 40px;
     right: 0;
     overflow-y: auto;
-    background-color: #282c33;
-  }
-
-  .sidebar.dark-mode .sidebar-content {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     background-color: #282c33;
   }
 
   .sidebar.collapsed .sidebar-content {
     display: none;
-  }
-
-  /* Dark mode styles */
-  .sidebar.dark-mode {
-    background-color: #282c33;
-    color: #f0f0f0;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.85);
-  }
-
-  .sidebar.dark-mode .sidebar-tabs {
-    background-color: #1b1d22;
   }
 
   /* Small screen optimizations */
@@ -231,27 +210,16 @@
     .sidebar-content {
       left: 44px;
     }
-  }
 
-  /* Fix dark mode background issues */
-  .sidebar.dark-mode {
-    background-color: #282c33;
-    color: #f0f0f0;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.85);
-  }
-
-  .sidebar.dark-mode .sidebar-tabs {
-    background-color: #1b1d22;
-  }
-
-  .sidebar.dark-mode .sidebar-content {
-    background-color: #282c33;
+    .sidebar-bottom-tabs {
+      padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    }
   }
 
   /* Ensure buttons are always visible on mobile */
   @media (hover: none) and (pointer: coarse) {
     .sidebar-bottom-tabs {
-      padding-bottom: 16px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
       gap: 12px;
     }
     
@@ -266,8 +234,5 @@
       background-color: #4a515a;
     }
     
-    .dark-mode .sidebar-button:active {
-      background-color: #4a515a;
-    }
   }
 </style>

@@ -7,9 +7,11 @@
   import SidebarTab from "./components/sidebar-tab.svelte";
   import SidebarPane from "./components/sidebar-pane.svelte";
   import CategoryFilterPane from "./components/category-filter-pane.svelte";
-  import { sidebarDarkMode, mapDarkMode, toggleSidebarDarkMode, toggleMapDarkMode } from "./lib/theme-store";
+  import { mapDarkMode, toggleMapDarkMode } from "./lib/theme-store";
   import { markers, fetchMarkers, markersError } from "./lib/markers-service";
   import { filteredMarkers } from "./lib/filter-store";
+  import { favoriteMarkers, favoriteNames, toggleFavorite, isFavorite } from "./lib/favorites-store";
+  import { userLocation, locateUser, geolocating } from "./lib/geolocation-store";
   import './app.css';
   
   // Sidebar state
@@ -17,23 +19,19 @@
   let activeTab = 'home';
   let markersComponent: MapLocationMarkers;
   let showMarkers = true;
-  let mapStyle = "https://tiles.openfreemap.org/styles/liberty";
+  const lightMapStyle = "https://tiles.openfreemap.org/styles/liberty";
   const darkMapStyle = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
   let showFormPopup = false;
   
-  // Handle tab clicks
   function handleTabClick(tabId: string) {
     if (activeTab === tabId) {
-      // If clicking the same tab, toggle the sidebar
       sidebarCollapsed = !sidebarCollapsed;
     } else {
-      // If clicking a different tab, open the sidebar and switch tabs
       activeTab = tabId;
       sidebarCollapsed = false;
     }
   }
   
-  // Toggle markers
   function handleMarkersToggle() {
     showMarkers = !showMarkers;
     if (markersComponent) {
@@ -41,12 +39,10 @@
     }
   }
   
-  // Toggle form popup
   function handleToggleForm() {
     showFormPopup = !showFormPopup;
   }
   
-  // Add refresh function
   async function handleRefresh() {
     await fetchMarkers();
     if (markersComponent) {
@@ -54,11 +50,20 @@
     }
   }
 
-  // Update map style when dark mode changes
-  $: currentMapStyle = $mapDarkMode ? darkMapStyle : mapStyle;
+  function handleFlyTo(name: string) {
+    if (markersComponent) {
+      markersComponent.flyToMarker(name);
+    }
+  }
+
+  // Fly to user location when geolocation completes
+  $: if ($userLocation && markersComponent) {
+    markersComponent.flyToLocation($userLocation, 14);
+  }
+
+  $: currentMapStyle = $mapDarkMode ? darkMapStyle : lightMapStyle;
   
   onMount(() => {
-    // Initial fetch of markers
     fetchMarkers();
   });
 </script>
@@ -88,10 +93,10 @@
     <svelte:fragment slot="tabs">
       <SidebarTab id="home" icon="fa-home" active={activeTab === 'home'} 
         on:click={() => handleTabClick('home')} />
+      <SidebarTab id="favorites" icon="fa-heart" active={activeTab === 'favorites'} 
+        on:click={() => handleTabClick('favorites')} />
       <SidebarTab id="about" icon="fa-info-circle" active={activeTab === 'about'} 
         on:click={() => handleTabClick('about')} />
-      <SidebarTab id="settings" icon="fa-cog" active={activeTab === 'settings'} 
-        on:click={() => handleTabClick('settings')} />
     </svelte:fragment>
     
     <svelte:fragment slot="content">
@@ -100,24 +105,47 @@
           {showMarkers}
           onMarkersToggle={handleMarkersToggle}
           onRefresh={handleRefresh}
+          onFlyTo={handleFlyTo}
         />
+      </SidebarPane>
+
+      <SidebarPane id="favorites" active={activeTab === 'favorites'}>
+        <div class="favorites-pane">
+          <h2>❤️ ფავორიტები</h2>
+          {#if $favoriteMarkers.length > 0}
+            <p class="fav-count">{$favoriteMarkers.length} შენახული ლოკაცია</p>
+            <ul class="markers-list">
+              {#each $favoriteMarkers as marker (marker.name)}
+                <li class="marker-item">
+                  <div class="marker-header">
+                    <button class="marker-title-btn" on:click={() => handleFlyTo(marker.name)} title="რუკაზე ნახვა">
+                      <span class="marker-emoji">{marker.emojiType || '📍'}</span>
+                      {marker.name}
+                    </button>
+                    <button class="fav-toggle" on:click={() => toggleFavorite(marker.name)} title="წაშალე">
+                      ❤️
+                    </button>
+                  </div>
+                  {#if marker.description}
+                    <p class="marker-description">{marker.description}</p>
+                  {/if}
+                </li>
+              {/each}
+            </ul>
+          {:else}
+            <div class="empty-favorites">
+              <p>🤍</p>
+              <p>ფავორიტები ცარიელია</p>
+              <p class="hint">დააჭირე 🤍 მარკერზე რომ შეინახო</p>
+            </div>
+          {/if}
+        </div>
       </SidebarPane>
       
       <SidebarPane id="about" active={activeTab === 'about'}>
         <h2>ინფორმაცია</h2>
         <p>საიდბარის ინსპირაცია აღებულია <b>sidebar-v2-დან</b>, იმპლემენტირებული <b>Svelte</b>-ში.</p>
         <p>აქ სხვა ელემენტების დამატება შეიძლება</p>
-      </SidebarPane>
-      
-      <SidebarPane id="settings" active={activeTab === 'settings'}>
-        <h2>პარამეტრები</h2>
-        <p>პარამეტრების შეცვლა.</p>
-        <div class="setting-option">
-          <label>
-            <input type="checkbox" checked={$sidebarDarkMode} on:change={toggleSidebarDarkMode}>
-            <span>🌓 საიდბარის მუქი თემა</span>
-          </label>
-        </div>
         <div class="setting-option">
           <label>
             <input type="checkbox" checked={$mapDarkMode} on:change={toggleMapDarkMode}>
@@ -134,7 +162,8 @@
     margin: 0;
     padding: 0;
     font-family: 'BPG Square Banner 2013', Arial, sans-serif;
-    height: 100vh;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
   
   .map-container {
@@ -206,21 +235,137 @@
   
   :global(.marker-popup a) {
     display: inline-block;
-    margin-top: 8px;
-    padding: 6px 12px;
-    background-color: #4a515a;
-    color: #f0f0f0;
     text-decoration: none;
-    border-radius: 4px;
     font-size: 0.85rem;
   }
-  
-  :global(.marker-popup a:hover) {
-    background-color: #5a6270;
+
+  :global(.marker-popup a.gmaps-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 0;
+    padding: 6px 14px;
+    background-color: #1a73e8;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    transition: background-color 0.2s;
+  }
+
+  :global(.marker-popup a.gmaps-btn:hover) {
+    background-color: #1558b0;
+    text-decoration: none;
+  }
+
+  :global(.marker-popup a.gmaps-btn i) {
+    color: #ea4335;
   }
   
   /* Make sure marker emojis are visible */
   :global(.marker) {
     filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));
+  }
+
+  /* Favorites pane */
+  .favorites-pane {
+    padding: 4px 0;
+  }
+
+  .favorites-pane h2 {
+    margin-top: 0;
+  }
+
+  .fav-count {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 12px;
+  }
+
+  .empty-favorites {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+  }
+
+  .empty-favorites p:first-child {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+  }
+
+  .empty-favorites .hint {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 8px;
+  }
+
+  .marker-title-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: #f0f0f0;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    font-family: inherit;
+    padding: 0;
+    min-height: 32px;
+    text-align: left;
+    flex: 1;
+    touch-action: manipulation;
+    transition: color 0.2s;
+  }
+
+  .marker-title-btn:hover {
+    color: #61dafb;
+  }
+
+  .fav-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 4px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    touch-action: manipulation;
+  }
+
+  .fav-toggle:hover {
+    transform: scale(1.2);
+  }
+
+  .markers-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .marker-item {
+    margin-bottom: 12px;
+    padding: 12px;
+    background-color: #363b42;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .marker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .marker-emoji {
+    font-size: 1.2rem;
+  }
+
+  .marker-description {
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: #bbb;
   }
 </style>

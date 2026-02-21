@@ -1,23 +1,33 @@
 /* Base Styles */
+html {
+  width: 100%;
+  height: 100%;
+}
+
 body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   font-family: "BPG Square Banner 2013", sans-serif;
+  -webkit-text-size-adjust: 100%;
   transition: background-color 0.3s;
 }
 
 #app {
   width: 100%;
   height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Map Container */
 .map-container {
   position: relative;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
 }
 
@@ -37,9 +47,19 @@ h1, h2, h3, p, div, button, label, input, a {
   border: none;
   cursor: pointer;
   padding: 0;
-  font-size: 24px; /* Base size for emoji markers */
   text-align: center;
   user-select: none;
+  /* Never set transition on .marker — MapLibre uses transform to position it */
+}
+
+.marker-inner {
+  display: inline-block;
+  font-size: 19px;
+  transition: transform 0.15s ease;
+}
+
+.marker:hover .marker-inner {
+  transform: scale(1.3);
 }
 
 /* Marker Popup Styles */
@@ -84,6 +104,12 @@ h1, h2, h3, p, div, button, label, input, a {
   color: #a0e9ff;
 }
 
+/* Dark Mode User Label */
+.dark-mode .user-label {
+  background: rgba(30, 30, 30, 0.9);
+  color: #79b8ff;
+}
+
 /* Sidebar Markers List */
 .markers-list {
   list-style: none;
@@ -121,21 +147,15 @@ h1, h2, h3, p, div, button, label, input, a {
 }
 
 .marker-item {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
+  background: #282c33;
+  border: 1px solid #444;
   border-radius: 8px;
   padding: 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.dark-mode .marker-item {
-  background: #282c33;
-  border-color: #444;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .marker-header {
@@ -147,15 +167,11 @@ h1, h2, h3, p, div, button, label, input, a {
 .marker-title {
   font-size: 1rem;
   font-weight: 500;
-  color: #333;
+  color: #f0f0f0;
   display: flex;
   align-items: center;
   gap: 6px;
   word-break: break-word;
-}
-
-.dark-mode .marker-title {
-  color: #f0f0f0;
 }
 
 .marker-emoji {
@@ -167,12 +183,8 @@ h1, h2, h3, p, div, button, label, input, a {
 .marker-description {
   margin: 0;
   font-size: 0.9rem;
-  color: #666;
-  line-height: 1.4;
-}
-
-.dark-mode .marker-description {
   color: #aaa;
+  line-height: 1.4;
 }
 
 .marker-button {
@@ -180,40 +192,25 @@ h1, h2, h3, p, div, button, label, input, a {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
+  background: #363b42;
+  border: 1px solid #444;
   border-radius: 4px;
-  color: #555;
+  color: #f0f0f0;
   text-decoration: none;
   font-size: 0.9rem;
   transition: all 0.2s ease;
 }
 
-.dark-mode .marker-button {
-  background: #363b42;
-  border-color: #444;
-  color: #f0f0f0;
-}
-
 .marker-button:hover {
-  background: #ebebeb;
-  border-color: #ccc;
-}
-
-.dark-mode .marker-button:hover {
   background: #404550;
   border-color: #555;
 }
 
 .no-markers {
   text-align: center;
-  color: #666;
+  color: #aaa;
   padding: 20px;
   font-style: italic;
-}
-
-.dark-mode .no-markers {
-  color: #aaa;
 }
 
 /* Settings */
@@ -233,19 +230,13 @@ h1, h2, h3, p, div, button, label, input, a {
 
 /* Error Messages */
 .error-message {
-  background-color: #fff3f3;
-  border: 1px solid #ffcdd2;
-  color: #d32f2f;
+  background-color: #421e1e;
+  border: 1px solid #642626;
+  color: #ff8a8a;
   padding: 12px;
   border-radius: 6px;
   margin-bottom: 16px;
   font-size: 14px;
-}
-
-.dark-mode .error-message {
-  background-color: #421e1e;
-  border-color: #642626;
-  color: #ff8a8a;
 }
 
 /* Form Button */
@@ -291,6 +282,7 @@ h1, h2, h3, p, div, button, label, input, a {
   justify-content: center;
   align-items: center;
   z-index: 2000;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
 }
 
 .overlay-button {
@@ -314,7 +306,9 @@ h1, h2, h3, p, div, button, label, input, a {
   width: 90%;
   max-width: 800px;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-content.dark-mode {
@@ -325,21 +319,22 @@ h1, h2, h3, p, div, button, label, input, a {
 
 .close-button {
   position: absolute;
-  right: 10px;
-  top: 10px;
+  right: calc(10px + env(safe-area-inset-right, 0px));
+  top: calc(10px + env(safe-area-inset-top, 0px));
   background: none;
   border: none;
   font-size: 24px;
   cursor: pointer;
   padding: 0;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   background: white;
   z-index: 1;
+  touch-action: manipulation;
 }
 
 .close-button:hover {
@@ -372,4 +367,12 @@ h1, h2, h3, p, div, button, label, input, a {
   font-size: 1.1em;
   display: inline-block;
   vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: calc(100% - 20px);
+    max-height: calc(100dvh - 20px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    padding: 16px;
+  }
 }

@@ -1,30 +1,25 @@
 <script lang="ts">
-  import { sidebarDarkMode } from '../lib/theme-store';
-  
   export let id: string;
   export let active: boolean = false;
 </script>
 
-<div id={id} class="sidebar-pane {active ? 'active' : ''} {$sidebarDarkMode ? 'dark-mode' : ''} hideScroll">
+<div id={id} class="sidebar-pane {active ? 'active' : ''} hideScroll">
   <slot></slot>
 </div>
 
 <style>
   .sidebar-pane {
     display: none;
-    padding: 12px;
+    padding: 8px;
     overflow-y: scroll;
     height: 100%;
     box-sizing: border-box;
+    color: #f0f0f0;
+    background-color: #282c33;
   }
 
   .sidebar-pane.active {
     display: block;
-  }
-  
-  .sidebar-pane.dark-mode {
-    color: #f0f0f0;
-    background-color: #282c33;
   }
 
   /* Hide scrollbar but keep functionality */
@@ -40,13 +35,13 @@
   /* Mobile optimizations */
   @media (max-width: 480px) {
     .sidebar-pane {
-      padding: 8px;
+      padding: 6px;
     }
   }
 
   @media (max-height: 500px) {
     .sidebar-pane {
-      padding: 8px;
+      padding: 6px;
     }
   }
 </style>

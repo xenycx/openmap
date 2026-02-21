@@ -47,8 +47,36 @@ export function toggleCategory(emoji: string): void {
   });
 }
 
+// Derived store: count of markers per emoji category
+export const categoryCounts = derived(
+  [markers],
+  ([$markers]) => {
+    const counts: Record<string, number> = {};
+    for (const marker of $markers) {
+      if (marker.emojiType) {
+        counts[marker.emojiType] = (counts[marker.emojiType] || 0) + 1;
+      }
+    }
+    return counts;
+  }
+);
+
 // Function to clear all filters
 export function clearFilters(): void {
   activeCategories.set([]);
   searchQuery.set('');
+}
+
+// URL sharing: read marker name from ?marker= param
+export function getSharedMarkerName(): string | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get('marker');
+}
+
+// Generate a share URL for a marker
+export function getShareUrl(markerName: string): string {
+  const url = new URL(window.location.href.split('?')[0]);
+  url.searchParams.set('marker', markerName);
+  return url.toString();
 }
