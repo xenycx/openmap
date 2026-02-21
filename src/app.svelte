@@ -164,14 +164,6 @@
     font-family: 'BPG Square Banner 2013', Arial, sans-serif;
   }
   
-  .map-container {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-  }
-  
   .setting-option {
     padding: 10px 0;
   }

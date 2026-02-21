@@ -1,0 +1,10 @@
+{
+  "name": "OpenMap",
+  "short_name": "OpenMap",
+  "description": "აღმოაჩინე და დაამატე საინტერესო ადგილები.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#11151f",
+  "theme_color": "#11151f"
+}
