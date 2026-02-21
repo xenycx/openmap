@@ -162,8 +162,6 @@
     margin: 0;
     padding: 0;
     font-family: 'BPG Square Banner 2013', Arial, sans-serif;
-    min-height: 100vh;
-    min-height: 100dvh;
   }
   
   .map-container {

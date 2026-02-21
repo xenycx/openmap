@@ -2,6 +2,8 @@
 html {
   width: 100%;
   height: 100%;
+  background-color: #11151f;
+  overscroll-behavior: none;
 }
 
 body {
@@ -11,6 +13,8 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   overflow: hidden;
+  background-color: #11151f;
+  overscroll-behavior: none;
   font-family: "BPG Square Banner 2013", sans-serif;
   -webkit-text-size-adjust: 100%;
   transition: background-color 0.3s;
@@ -21,6 +25,7 @@ body {
   height: 100%;
   min-height: 100vh;
   min-height: 100dvh;
+  background-color: #11151f;
 }
 
 /* Map Container */
@@ -28,7 +33,7 @@ body {
   position: relative;
   height: 100vh;
   height: 100dvh;
-  width: 100vw;
+  width: 100%;
 }
 
 .maplibregl-map {
